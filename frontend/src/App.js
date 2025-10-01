@@ -3,8 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { WebSocketProvider } from './context/WebSocketContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
-
-// import DataSensor from './pages/DataSensor';
+import DataSensor from './pages/DataSensor';
 // import DeviceActivity from './pages/DeviceActivity';
 // import MyProfile from './pages/MyProfile';
 
@@ -18,7 +17,7 @@ function App() {
                         <Route index element={<Dashboard />} />
 
                         {}
-                        {/* <Route path="data-sensor" element={<DataSensor />} /> */}
+                        { <Route path="data-sensor" element={<DataSensor />} /> }
                         {/* <Route path="device-activity" element={<DeviceActivity />} /> */}
                         {/* <Route path="my-profile" element={<MyProfile />} /> */}
                         {}

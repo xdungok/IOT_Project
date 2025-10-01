@@ -19,8 +19,8 @@ function Layout() {
                         </li>
 
                         {}
-                        <li className="disabled-link">
-                            <a><FaDatabase className="nav-icon" /> DATA SENSOR</a>
+                        <li>
+                            <NavLink to="/data-sensor"><FaDatabase className="nav-icon" /> DATA SENSOR</NavLink>
                         </li>
                         <li className="disabled-link">
                             <a><FaHistory className="nav-icon" /> DEVICE ACTIVITY</a>

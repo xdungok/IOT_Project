@@ -297,3 +297,66 @@ body {
 .switch-checkbox:checked + .switch-track .switch-thumb {
     transform: translateX(26px);
 }
+
+/* CSS CHO TRANG DATA SENSOR */
+
+.data-sensor-header {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.data-sensor-header select,
+.data-sensor-header input,
+.data-sensor-header button {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    font-size: 1rem;
+    background-color: var(--card-bg);
+}
+
+.data-sensor-header button {
+    cursor: pointer;
+    background-color: var(--text-secondary);
+    color: white;
+    font-weight: 500;
+}
+
+.data-sensor-header button:hover {
+    background-color: var(--text-primary);
+}
+
+/* --- Pagination --- */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 8px;
+}
+
+.pagination button {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.pagination button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.pagination button.active {
+    background-color: var(--text-primary);
+    color: white;
+    border-color: var(--text-primary);
+}
+
+.pagination button:not(:disabled):hover {
+    background-color: #e9ecef;
+}
