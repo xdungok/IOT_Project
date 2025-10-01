@@ -328,7 +328,7 @@ body {
     background-color: var(--text-primary);
 }
 
-/* --- Pagination --- */
+/* Pagination */
 .pagination {
     display: flex;
     justify-content: center;

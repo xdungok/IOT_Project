@@ -5,7 +5,7 @@ import '../App.css';
 const API_URL = 'http://localhost:3001';
 
 function DataSensor() {
-    // --- STATE QUẢN LÝ DỮ LIỆU VÀ GIAO DIỆN ---
+    // State quản lý dữ liệu và giao diện
     const [sensorHistory, setSensorHistory] = useState([]);
     const [pagination, setPagination] = useState({});
     const [loading, setLoading] = useState(true);
@@ -18,7 +18,6 @@ function DataSensor() {
     // State cho trang hiện tại
     const [currentPage, setCurrentPage] = useState(1);
 
-    // --- LOGIC GỌI API ---
     // useCallback để tránh tạo lại hàm fetchSensorHistory mỗi lần render
     const fetchSensorHistory = useCallback(async (page, sort, search) => {
         try {
@@ -27,7 +26,7 @@ function DataSensor() {
             // Xây dựng các tham số cho URL
             const params = new URLSearchParams({
                 page: page,
-                limit: 10, // Hiển thị 10 mục mỗi trang
+                limit: 10,
             });
 
             // Xử lý tham số sắp xếp
@@ -58,11 +57,10 @@ function DataSensor() {
     // useEffect để gọi API lần đầu tiên khi component được mount
     useEffect(() => {
         fetchSensorHistory(currentPage, sortOption, { type: searchType, value: searchValue });
-    }, [fetchSensorHistory, currentPage, sortOption]); // Phụ thuộc vào các state này
+    }, [fetchSensorHistory, currentPage, sortOption]);
     
-    // --- CÁC HÀM XỬ LÝ SỰ KIỆN ---
+    // Các hàm xử lý sự kiện
     const handleSearch = () => {
-        // Khi nhấn search, luôn quay về trang 1 để xem kết quả mới
         setCurrentPage(1); 
         fetchSensorHistory(1, sortOption, { type: searchType, value: searchValue });
     };
@@ -73,7 +71,7 @@ function DataSensor() {
         }
     };
     
-    // --- LOGIC HIỂN THỊ CÁC NÚT PHÂN TRANG ---
+    // Phân trang
     const renderPaginationButtons = () => {
         const buttons = [];
         const totalPages = pagination.totalPages || 1;
@@ -96,7 +94,7 @@ function DataSensor() {
     };
 
 
-    // --- PHẦN RENDER GIAO DIỆN ---
+    // Render giao diện
     return (
         <div>
             <h2>DATASENSOR</h2>
