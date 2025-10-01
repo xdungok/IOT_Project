@@ -1,48 +1,34 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React from 'react';
 import { useWebSocket } from '../context/WebSocketContext';
+import { useDeviceState } from '../context/DeviceStateContext';
 import SensorCard from '../components/SensorCard';
 import DeviceControl from '../components/DeviceControl';
 import DataChart from '../components/DataChart';
 import { FaThermometerHalf, FaTint, FaSun, FaLightbulb, FaFan, FaSnowflake } from 'react-icons/fa';
 
-const API_URL = 'http://localhost:3001';
-
 function Dashboard() {
     const { latestData, historicalData } = useWebSocket();
-    const [deviceStates, setDeviceStates] = useState({ 
-        led_1: 'OFF',
-        led_2: 'OFF',
-        led_3: 'OFF'
-    });
+    // Lấy trạng thái và hàm điều khiển từ Context
+    const { deviceStates, handleControl } = useDeviceState();
 
-    const handleControl = async (device, status) => {
-        try {
-            await axios.post(`${API_URL}/api/control`, { device, status }, {
-            });
-            setDeviceStates(prev => ({ ...prev, [device]: status.toUpperCase() }));
-        } catch (error) {
-            console.error('Error sending control command:', error);
-        }
-    };
-    
     return (
         <>
+            <h2>DASHBOARD</h2>
             <section className="sensor-cards">
-                <SensorCard 
-                    label="Nhiệt độ" 
-                    value={`${latestData.temperature.toFixed(1)} °C`} 
-                    color="blue" 
+                <SensorCard
+                    label="Nhiệt độ"
+                    value={`${latestData.temperature.toFixed(1)} °C`}
+                    color="blue"
                     icon={<FaThermometerHalf />}
                 />
-                <SensorCard 
-                    label="Độ ẩm" 
+                <SensorCard
+                    label="Độ ẩm"
                     value={`${latestData.humidity.toFixed(1)} %`}
                     color="pink"
                     icon={<FaTint />}
                 />
-                <SensorCard 
-                    label="Ánh sáng" 
+                <SensorCard
+                    label="Ánh sáng"
                     value={`${latestData.light} LUX`}
                     color="orange"
                     icon={<FaSun />}
@@ -53,24 +39,24 @@ function Dashboard() {
                     <DataChart data={historicalData} />
                 </div>
                 <div className="device-controls">
-                    <DeviceControl 
-                        label="Đèn" 
-                        device="led_1" 
-                        state={deviceStates.led_1} 
+                    <DeviceControl
+                        label="Đèn"
+                        device="led_1"
+                        state={deviceStates.led_1}
                         onControl={handleControl}
                         icon={<FaLightbulb />}
                     />
-                    <DeviceControl 
-                        label="Điều hòa" 
-                        device="led_2" 
-                        state={deviceStates.led_2} 
+                    <DeviceControl
+                        label="Điều hòa"
+                        device="led_2"
+                        state={deviceStates.led_2}
                         onControl={handleControl}
                         icon={<FaSnowflake />}
                     />
-                    <DeviceControl 
-                        label="Quạt" 
-                        device="led_3" 
-                        state={deviceStates.led_3} 
+                    <DeviceControl
+                        label="Quạt"
+                        device="led_3"
+                        state={deviceStates.led_3}
                         onControl={handleControl}
                         icon={<FaFan />}
                     />

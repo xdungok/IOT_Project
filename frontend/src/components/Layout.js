@@ -14,21 +14,17 @@ function Layout() {
                 <nav className="sidebar-nav">
                     <ul>
                         <li>
-                            {}
                             <NavLink to="/"><FaTachometerAlt className="nav-icon" /> DASHBOARD</NavLink>
                         </li>
-
-                        {}
                         <li>
                             <NavLink to="/data-sensor"><FaDatabase className="nav-icon" /> DATA SENSOR</NavLink>
                         </li>
-                        <li className="disabled-link">
-                            <a><FaHistory className="nav-icon" /> DEVICE ACTIVITY</a>
+                        <li>
+                            <NavLink to="/device-activity"><FaHistory className="nav-icon" /> DEVICE ACTIVITY</NavLink>
                         </li>
                         <li className="disabled-link">
                             <a><FaUser className="nav-icon" /> MY PROFILE</a>
                         </li>
-                        {}
                     </ul>
                 </nav>
             </aside>
