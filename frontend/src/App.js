@@ -6,7 +6,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import DataSensor from './pages/DataSensor';
 import DeviceActivity from './pages/DeviceActivity';
-// import MyProfile from './pages/MyProfile';
+import MyProfile from './pages/MyProfile';
 
 function App() {
     return (
@@ -18,7 +18,7 @@ function App() {
                             <Route index element={<Dashboard />} />
                             <Route path="data-sensor" element={<DataSensor />} />
                             <Route path="device-activity" element={<DeviceActivity />} />
-                            {/* <Route path="my-profile" element={<MyProfile />} /> */}
+                            <Route path="my-profile" element={<MyProfile />} />
                         </Route>
                     </Routes>
                 </BrowserRouter>

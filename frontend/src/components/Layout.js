@@ -22,8 +22,8 @@ function Layout() {
                         <li>
                             <NavLink to="/device-activity"><FaHistory className="nav-icon" /> DEVICE ACTIVITY</NavLink>
                         </li>
-                        <li className="disabled-link">
-                            <a><FaUser className="nav-icon" /> MY PROFILE</a>
+                        <li>
+                            <NavLink to="/my-profile"><FaUser className="nav-icon" /> MY PROFILE</NavLink>
                         </li>
                     </ul>
                 </nav>
