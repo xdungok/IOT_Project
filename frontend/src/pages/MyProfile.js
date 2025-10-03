@@ -1,29 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React from 'react';
+import { useProfile } from '../context/ProfileContext';
 import '../App.css';
 
-const API_URL = 'http://localhost:3001';
-
 function MyProfile() {
-    const [profile, setProfile] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                setLoading(true);
-                const response = await axios.get(`${API_URL}/api/profile`);
-                setProfile(response.data);
-            } catch (error) {
-                console.error("Failed to fetch profile data:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProfile();
-    }, []); // Mảng rỗng đảm bảo chỉ gọi 1 lần
-
+    // Lấy dữ liệu và trạng thái loading trực tiếp từ Context
+    const { profile, loading } = useProfile();
     if (loading) {
         return <h2>Loading profile...</h2>;
     }
@@ -34,7 +15,6 @@ function MyProfile() {
 
     return (
         <div>
-            <h2>MY PROFILE</h2>
             <div className="profile-page-container">
                 <div className="profile-card">
                     {/* Ảnh đại diện */}

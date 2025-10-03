@@ -423,3 +423,173 @@ body {
     height: 40px; /* Kích thước logo */
     vertical-align: middle;
 }
+
+/* CSS CHO THÔNG BÁO */
+.notification-container {
+    position: relative;
+}
+
+.notification-icon.unread {
+    color: var(--orange-card);
+    animation: bell-ring 1.5s ease-in-out infinite;
+}
+
+@keyframes bell-ring {
+    0%, 100% { transform: rotate(0); }
+    10%, 30%, 50%, 70%, 90% { transform: rotate(15deg); }
+    20%, 40%, 60%, 80% { transform: rotate(-15deg); }
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 350px;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    z-index: 1000;
+    margin-top: 10px;
+}
+
+.notification-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item.warning strong {
+    color: #dc3545; /* Màu đỏ cho cảnh báo */
+}
+
+.notification-item.info strong {
+    color: #0d6efd; /* Màu xanh cho thông tin */
+}
+
+.notification-item span {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* SỬA LỖI Z-INDEX CHO TOASTIFY */
+.toast-body {
+    z-index: 99999 !important;
+}
+
+/* CSS CHO CÁC HIỆU ỨNG */
+
+/* Hiệu ứng tia sáng nhỏ cho icon bóng đèn */
+.light-rays-container {
+    position: relative;
+}
+.light-rays-container.on::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, rgba(255, 193, 7, 0.6) 0%, rgba(255, 193, 7, 0) 70%);
+    border-radius: 50%;
+    animation: pulse-light 2s infinite;
+    z-index: -1;
+}
+@keyframes pulse-light {
+    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; }
+    70% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+}
+
+/* Hiệu ứng Quạt quay cho icon */
+.spinning-icon {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Overlay cho các hiệu ứng toàn màn hình */
+.fullscreen-effect-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+/* Hiệu ứng Bóng đèn tỏa sáng */
+.light-bulb-effect {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 25rem;
+    color: #ffd700;
+    text-shadow: 0 0 20px #ffd700, 0 0 40px #ffa500, 0 0 60px #ff8c00;
+    animation: fade-in-out-light 2s ease-in-out;
+}
+@keyframes fade-in-out-light {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    25% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}
+
+/* Hiệu ứng gió thổi cho điều hòa */
+.wind-particle {
+    position: absolute;
+    font-size: 2.5rem;
+    color: #87ceeb;
+    opacity: 0;
+    /* Mỗi hạt gió có animation khác nhau */
+    animation-name: blow-wind;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+@keyframes blow-wind {
+    0% {
+        transform: translateX(-150px) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.8;
+    }
+    90% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(100vw) rotate(720deg); /* Thêm hiệu ứng xoay */
+        opacity: 0;
+    }
+}
+
+/* Hiệu ứng quạt lớn quay */
+.spinning-fan-effect {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: 20rem;
+    color: rgba(0, 0, 0, 0.1);
+    /* 2 animation: một để quay, một để hiện ra và mờ đi */
+    animation: spin 0.5s linear infinite, fade-in-out-fan 2.5s ease-in-out;
+}
+@keyframes fade-in-out-fan {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}

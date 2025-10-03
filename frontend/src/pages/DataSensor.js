@@ -97,8 +97,6 @@ function DataSensor() {
     // Render giao diện
     return (
         <div>
-            <h2>DATASENSOR</h2>
-            
             {/* Thanh Filter và Search */}
             <div className="data-sensor-header">
                 <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}>

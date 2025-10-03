@@ -1,6 +1,7 @@
 const mqtt = require('mqtt');
 const config = require('../config');
 const SensorData = require('../models/sensorData');
+const notificationService = require('./notificationService');
 
 let mqttClient;
 
@@ -25,6 +26,7 @@ function init(broadcastCallback) {
         try {
             const data = JSON.parse(payload.toString());
             console.log('Received sensor data:', data);
+            notificationService.processSensorData(data);
 
             // Lưu dữ liệu vào database
             const newSensorData = new SensorData(data);

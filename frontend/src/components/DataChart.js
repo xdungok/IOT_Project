@@ -10,8 +10,8 @@ function DataChart({ data }) {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="temperature" name="Nhiệt độ(°C)" stroke="#ff0000" />
-                <Line type="monotone" dataKey="humidity" name="Độ ẩm(%)" stroke="#8884d8" />
+                <Line type="monotone" dataKey="temperature" name="Nhiệt độ(°C)" stroke="#8884d8" />
+                <Line type="monotone" dataKey="humidity" name="Độ ẩm(%)" stroke="#ff0000" />
                 {}
                 <Line type="monotone" dataKey="light" name="Ánh sáng(Lux/10)" stroke="#82ca9d" />
             </LineChart>

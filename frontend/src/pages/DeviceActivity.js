@@ -91,8 +91,6 @@ function DeviceActivity() {
     // Render giao diện
     return (
         <div>
-            <h2>DEVICE ACTIVITY</h2>
-            
             {/* Thanh Filter và Search */}
             <div className="data-sensor-header">
                 <select value={filterDevice} onChange={(e) => setFilterDevice(e.target.value)}>
