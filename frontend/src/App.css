@@ -593,3 +593,23 @@ body {
     80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
 }
+
+/* CSS CHO TRẠNG THÁI PENDING */
+
+.device-control.pending {
+    opacity: 0.6;
+}
+
+.toggle-switch .switch-checkbox:disabled {
+    cursor: not-allowed;
+}
+
+.switch-thumb .loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22px; /* Chỉnh kích thước icon loading */
+    color: var(--text-secondary);
+    animation: spin 1s linear infinite;
+}

@@ -8,7 +8,8 @@ module.exports = {
         password: process.env.MQTT_PASSWORD,
         topics: {
             sensorData: 'sensors/data',
-            deviceControl: 'devices/control'
+            deviceControl: 'devices/control',
+            deviceResponse: 'response'
         }
     },
     server: {

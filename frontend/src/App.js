@@ -14,12 +14,12 @@ import 'react-toastify/dist/ReactToastify.css';
 function App() {
     return (
          <ProfileProvider>
-            <WebSocketProvider>
-                <DeviceStateProvider>
+            <DeviceStateProvider>
+                <WebSocketProvider>
                     <BrowserRouter>
                         <ToastContainer
                                 position="top-right"
-                                autoClose={5000} // Tự động đóng sau 5 giây
+                                autoClose={5000}
                                 hideProgressBar={false}
                                 newestOnTop={false}
                                 closeOnClick
@@ -28,7 +28,6 @@ function App() {
                                 draggable
                                 pauseOnHover
                                 theme="light"
-                                bodyClassName="toast-body"
                             />
                         <Routes>
                             <Route path="/" element={<Layout />}>
@@ -39,8 +38,8 @@ function App() {
                             </Route>
                         </Routes>
                     </BrowserRouter>
-                </DeviceStateProvider>
-            </WebSocketProvider>
+                </WebSocketProvider>
+            </DeviceStateProvider>
         </ProfileProvider>
     );
 }
