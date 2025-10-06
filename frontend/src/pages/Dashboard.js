@@ -10,9 +10,10 @@ import WindEffect from '../components/WindEffect';
 import SpinningFanEffect from '../components/SpinningFanEffect';
 
 function Dashboard() {
+    // Lấy dữ liệu real-time từ WebSocket Context
     const { latestData, historicalData } = useWebSocket();
-    // Lấy trạng thái và hàm điều khiển từ Context
-    const { deviceStates, handleControl: contextHandleControl } = useDeviceState();
+    // Lấy trạng thái, hàm điều khiển, và trạng thái loading từ DeviceState Context
+    const { deviceStates, handleControl: contextHandleControl, loading: devicesLoading } = useDeviceState();
     
     // State để kích hoạt các hiệu ứng một lần
     const [showLightEffect, setShowLightEffect] = useState(false);
@@ -21,12 +22,14 @@ function Dashboard() {
 
     // Bọc hàm handleControl của context lại để thêm logic hiệu ứng
     const handleControl = async (device, status) => {
+        // Gọi hàm gốc từ context để gửi lệnh và cập nhật state toàn cục
         await contextHandleControl(device, status);
 
+        // Kích hoạt hiệu ứng nếu bật thiết bị
         if (status.toUpperCase() === 'ON') {
             if (device === 'led_1') { // Đèn
                 setShowLightEffect(true);
-                setTimeout(() => setShowLightEffect(false), 2000); // Animation kéo dài 2s
+                setTimeout(() => setShowLightEffect(false), 2000);
             }
             if (device === 'led_2') { // Điều hòa
                 setShowWindEffect(true);
@@ -38,6 +41,11 @@ function Dashboard() {
             }
         }
     };
+
+    // Hiển thị thông báo loading trong khi chờ lấy trạng thái thiết bị
+    if (devicesLoading) {
+        return <h2 style={{ textAlign: 'center', marginTop: '40px' }}>Loading Device States...</h2>;
+    }
 
     return (
         <>
@@ -61,7 +69,7 @@ function Dashboard() {
                 />
                 <SensorCard
                     label="Ánh sáng"
-                    value={`${latestData.light.toFixed(0)} LUX`} 
+                    value={`${latestData.light.toFixed(2)} LUX`}
                     color="orange"
                     icon={<FaSun />}
                 />
