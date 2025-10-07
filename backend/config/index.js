@@ -9,7 +9,8 @@ module.exports = {
         topics: {
             sensorData: 'sensors/data',
             deviceControl: 'devices/control',
-            deviceResponse: 'response'
+            deviceResponse: 'response', // Topic phản hồi từ thiết bị
+            deviceStatus: 'devices/status' // Topic cho trạng thái online/offline (LWT)
         }
     },
     server: {

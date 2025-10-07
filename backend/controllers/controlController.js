@@ -10,21 +10,30 @@ const sendCommand = async (req, res) => {
     }
 
     try {
-        mqttService.publishControlMessage(device, status);
-
-        // Ghi lại hành động vào database
-        const newActivity = new DeviceActivity({ device, status });
-        await DeviceState.findOneAndUpdate(
-            { _id: device }, // Điều kiện tìm kiếm
-            { status: status.toUpperCase() }, // Dữ liệu cập nhật
-            { upsert: true, new: true } // Tùy chọn
-        );
-        
+        // Tạo một bản ghi hoạt động với trạng thái "pending"
+        const newActivity = new DeviceActivity({ device, status, result: 'pending' });
         await newActivity.save();
-        res.status(200).json({ success: true, message: 'Command sent and activity logged' });
+
+        // Gửi lệnh đi tới MQTT Broker
+        mqttService.publishControlMessage(device, status);
+        
+        // Đặt một bộ đếm thời gian để kiểm tra
+        setTimeout(async () => {
+            const activity = await DeviceActivity.findById(newActivity._id);
+            // Chỉ cập nhật nếu trạng thái vẫn là "pending"
+            if (activity && activity.result === 'pending') {
+                console.warn(`Command ${activity._id} for device '${device}' timed out. Marking as failed.`);
+                activity.result = 'failed';
+                await activity.save();
+            }
+        }, 10000); // 10 giây timeout
+
+        // Trả về mã 202 Accepted, báo cho frontend biết lệnh đã được chấp nhận để xử lý
+        res.status(202).json({ success: true, message: 'Command accepted and is being processed.' });
+
     } catch (error) {
         console.error('Error in sendCommand controller:', error);
-        res.status(500).json({ error: 'Failed to send command' });
+        res.status(500).json({ error: 'Failed to process command' });
     }
 };
 

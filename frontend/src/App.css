@@ -613,3 +613,28 @@ body {
     color: var(--text-secondary);
     animation: spin 1s linear infinite;
 }
+
+/* CSS CHO TRẠNG THÁI OFFLINE */
+.device-control.offline {
+    opacity: 0.5;
+    background-color: #f8f9fa; /* Màu nền xám hơn */
+}
+.device-control.offline .toggle-switch {
+    cursor: not-allowed;
+}
+
+/* CSS CHO LỊCH SỬ HOẠT ĐỘNG THẤT BẠI */
+
+.history-table tbody tr.activity-failed {
+    background-color: #f8d7da; /* Màu nền đỏ nhạt */
+    color: #721c24; /* Màu chữ đỏ đậm */
+}
+
+.history-table tbody tr.activity-failed:hover {
+    background-color: #f1b0b7; /* Màu hover đậm hơn một chút */
+}
+
+.history-table tbody tr.activity-pending {
+    background-color: #fff3cd; /* Màu vàng nhạt */
+    color: #856404;
+}

@@ -90,37 +90,39 @@ function DeviceActivity() {
 
     // Render giao diện
     return (
-        <div>
-            {/* Thanh Filter và Search */}
-            <div className="data-sensor-header">
-                <select value={filterDevice} onChange={(e) => setFilterDevice(e.target.value)}>
-                    <option value="">Tất cả thiết bị</option>
-                    <option value="led_1">Đèn</option>
-                    <option value="led_2">Điều hòa</option>
-                    <option value="led_3">Quạt</option>
-                </select>
+        <div className="page-container">
+            <div className="page-header">
+                <h2>DEVICE ACTIVITY</h2>
+                {/* Thanh Filter và Search */}
+                <div className="data-sensor-header">
+                    <select value={filterDevice} onChange={(e) => setFilterDevice(e.target.value)}>
+                        <option value="">Tất cả thiết bị</option>
+                        <option value="led_1">Đèn</option>
+                        <option value="led_2">Điều hòa</option>
+                        <option value="led_3">Quạt</option>
+                    </select>
 
-                <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                    <option value="">Tất cả hành động</option>
-                    <option value="ON">Bật</option>
-                    <option value="OFF">Tắt</option>
-                </select>
+                    <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                        <option value="">Tất cả hành động</option>
+                        <option value="ON">Bật</option>
+                        <option value="OFF">Tắt</option>
+                    </select>
 
-                <input 
-                    type="text"
-                    placeholder="HH:mm DD/MM/YYYY"
-                    value={searchTime}
-                    onChange={(e) => setSearchTime(e.target.value)}
-                />
+                    <input 
+                        type="text"
+                        placeholder="HH:mm DD/MM/YYYY"
+                        value={searchTime}
+                        onChange={(e) => setSearchTime(e.target.value)}
+                    />
 
-                <button onClick={handleSearch}>Search</button>
+                    <button onClick={handleSearch}>Search</button>
+                </div>
             </div>
 
-            {/* Bảng Dữ liệu */}
-            {loading ? (
-                <p>Loading activity history...</p>
-            ) : (
-                <>
+            <div className="table-container">
+                {loading ? (
+                    <p style={{textAlign: 'center', paddingTop: '20px'}}>Loading activity history...</p>
+                ) : (
                     <table className="history-table">
                         <thead>
                             <tr>
@@ -131,18 +133,27 @@ function DeviceActivity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {activities.map((activity, index) => (
-                                <tr key={activity._id}>
-                                    <td>{(currentPage - 1) * 10 + index + 1}</td>
-                                    <td>{deviceNameMap[activity.device] || activity.device}</td>
-                                    <td>{activity.status === 'ON' ? 'Bật' : 'Tắt'}</td>
-                                    <td>{new Date(activity.createdAt).toLocaleString('vi-VN')}</td>
-                                </tr>
-                            ))}
+                            {activities.map((activity, index) => {
+                                let resultClass = '';
+                                if (activity.result === 'failed') resultClass = 'activity-failed';
+                                if (activity.result === 'pending') resultClass = 'activity-pending';
+
+                                return (
+                                    <tr key={activity._id} className={resultClass}>
+                                        <td>{(currentPage - 1) * 10 + index + 1}</td>
+                                        <td>{deviceNameMap[activity.device] || activity.device}</td>
+                                        <td>{activity.status === 'ON' ? 'Bật' : 'Tắt'}</td>
+                                        <td>{new Date(activity.createdAt).toLocaleString('vi-VN')}</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
+                )}
+            </div>
 
-                    {/* Phân trang */}
+            <div className="page-footer">
+                {!loading && (
                     <div className="pagination">
                         <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}>First</button>
                         <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
@@ -150,8 +161,8 @@ function DeviceActivity() {
                         <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === pagination.totalPages}>Next</button>
                         <button onClick={() => handlePageChange(pagination.totalPages)} disabled={currentPage === pagination.totalPages}>Last</button>
                     </div>
-                </>
-            )}
+                )}
+            </div>
         </div>
     );
 }

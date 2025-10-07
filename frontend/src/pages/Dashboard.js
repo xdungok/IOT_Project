@@ -10,7 +10,7 @@ import WindEffect from '../components/WindEffect';
 import SpinningFanEffect from '../components/SpinningFanEffect';
 
 function Dashboard() {
-    const { latestData, historicalData } = useWebSocket();
+    const { latestData, historicalData, isDeviceOffline } = useWebSocket();
     // Lấy trạng thái và hàm điều khiển từ Context
     const { deviceStates, handleControl: contextHandleControl, loading: devicesLoading } = useDeviceState();
     
@@ -20,30 +20,17 @@ function Dashboard() {
     const [showWindEffect, setShowWindEffect] = useState(false);
     const [showFanEffect, setShowFanEffect] = useState(false);
 
-    // Bọc hàm handleControl của context để thêm logic hiệu ứng
-    const handleControl = async (device, status) => {
+    const handleControl = (device, status) => {
+        // Set pending và gọi hàm context
         setPendingDevices(prev => ({ ...prev, [device]: true }));
-        await contextHandleControl(device, status);
-        // Đặt timeout để gỡ trạng thái chờ nếu không nhận được phản hồi
-        setTimeout(() => {
-            setPendingDevices(prev => {
-                const newPending = { ...prev };
-                if (newPending[device]) { // Chỉ gỡ nếu vẫn đang pending
-                    console.warn(`Timeout waiting for response from device: ${device}`);
-                }
-                newPending[device] = false;
-                return newPending;
-            });
-        }, 5000); // 5 giây timeout
+        contextHandleControl(device, status);
     };
 
     // useEffect để xử lý khi có trạng thái mới được xác nhận từ WebSocket
     useEffect(() => {
         Object.keys(deviceStates).forEach(device => {
-            // Nếu thiết bị này đang ở trạng thái chờ thì gỡ trạng thái chờ đi
             if (pendingDevices[device]) {
                 setPendingDevices(prev => ({ ...prev, [device]: false }));
-                // Kích hoạt hiệu ứng nếu trạng thái mới là ON
                 if (deviceStates[device] === 'ON') {
                     if (device === 'led_1') {
                         setShowLightEffect(true);
@@ -60,7 +47,7 @@ function Dashboard() {
                 }
             }
         });
-    }, [deviceStates]); // Chỉ chạy khi deviceStates thay đổi
+    }, [deviceStates]);
 
     if (devicesLoading) {
         return <h2 style={{ textAlign: 'center', marginTop: '40px' }}>Loading Device States...</h2>;
@@ -71,6 +58,8 @@ function Dashboard() {
             {showLightEffect && <LightBulbEffect />}
             {showWindEffect && <WindEffect />}
             {showFanEffect && <SpinningFanEffect />}
+            
+            {isDeviceOffline && <div style={{backgroundColor: '#ffc107', color: '#343a40', textAlign: 'center', fontWeight: 'bold', padding: '10px', borderRadius: '8px', marginBottom: '15px'}}>Cảnh báo: Thiết bị đang offline!</div>}
 
             <section className="sensor-cards">
                 <SensorCard label="Nhiệt độ" value={`${latestData.temperature.toFixed(1)} °C`} color="blue" icon={<FaThermometerHalf />}/>
@@ -82,9 +71,9 @@ function Dashboard() {
                     <DataChart data={historicalData} />
                 </div>
                 <div className="device-controls">
-                    <DeviceControl label="Đèn" device="led_1" state={deviceStates.led_1} onControl={handleControl} icon={<FaLightbulb />} isPending={pendingDevices['led_1']} />
-                    <DeviceControl label="Điều hòa" device="led_2" state={deviceStates.led_2} onControl={handleControl} icon={<FaSnowflake />} isPending={pendingDevices['led_2']} />
-                    <DeviceControl label="Quạt" device="led_3" state={deviceStates.led_3} onControl={handleControl} icon={<FaFan />} isPending={pendingDevices['led_3']} />
+                    <DeviceControl label="Đèn" device="led_1" state={deviceStates.led_1} onControl={handleControl} icon={<FaLightbulb />} isPending={pendingDevices['led_1']} isOffline={isDeviceOffline} />
+                    <DeviceControl label="Điều hòa" device="led_2" state={deviceStates.led_2} onControl={handleControl} icon={<FaSnowflake />} isPending={pendingDevices['led_2']} isOffline={isDeviceOffline} />
+                    <DeviceControl label="Quạt" device="led_3" state={deviceStates.led_3} onControl={handleControl} icon={<FaFan />} isPending={pendingDevices['led_3']} isOffline={isDeviceOffline} />
                 </div>
             </section>
         </>
