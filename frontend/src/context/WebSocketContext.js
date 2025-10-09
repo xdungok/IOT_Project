@@ -12,7 +12,12 @@ export const WebSocketProvider = ({ children }) => {
     const [historicalData, setHistoricalData] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [hasUnread, setHasUnread] = useState(false);
-    const { updateDeviceState } = useDeviceState();
+    
+    // Lấy các hàm cần thiết từ DeviceStateContext
+    const { updateDeviceState, fetchInitialStates } = useDeviceState();
+    
+    // State để báo thiết bị offline
+    const [isDeviceOffline, setIsDeviceOffline] = useState(false); 
 
     useEffect(() => {
         const ws = new WebSocket(WEBSOCKET_URL);
@@ -21,6 +26,7 @@ export const WebSocketProvider = ({ children }) => {
 
         ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
+
             if (message.type === 'sensorData') {
                 const rawData = message.payload;
                 const timestamp = message.timestamp;
@@ -38,7 +44,6 @@ export const WebSocketProvider = ({ children }) => {
             }
             else if (message.type === 'notification') {
                 const newNotification = message.payload;
-                console.log("Attempting to show toast for:", newNotification.message);
                 if (newNotification.type === 'warning') {
                     toast.error(newNotification.message);
                 } else if (newNotification.type === 'info') {
@@ -54,12 +59,26 @@ export const WebSocketProvider = ({ children }) => {
                 console.log(`Received confirmed state for ${device}: ${state}`);
                 updateDeviceState(device, state);
             }
+            // Logic xử lý trạng thái kết nối
+            else if (message.type === 'deviceConnectionStatus') {
+                if (message.payload.status === 'offline') {
+                    console.warn('Device is offline!');
+                    setIsDeviceOffline(true);
+                    //updateDeviceState('all', 'OFF'); // Cập nhật giao diện về OFF
+                    toast.warn("Thiết bị đã mất kết nối!");
+                } else if (message.payload.status === 'online') {
+                    console.log('Device is back online! Fetching latest states...');
+                    setIsDeviceOffline(false);
+                    fetchInitialStates(); // Đồng bộ lại trạng thái từ database
+                    toast.success("Thiết bị đã kết nối trở lại.");
+                }
+            }
         };
 
         return () => ws.close();
-    }, [updateDeviceState]);
+    }, [updateDeviceState, fetchInitialStates]);
 
-    const value = { latestData, historicalData, notifications, hasUnread, setHasUnread };
+    const value = { latestData, historicalData, notifications, hasUnread, setHasUnread, isDeviceOffline };
 
     return (
         <WebSocketContext.Provider value={value}>

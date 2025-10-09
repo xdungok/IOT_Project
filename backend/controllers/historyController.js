@@ -24,7 +24,7 @@ function parseCustomDateString(customDateString) {
 
     // Ghép lại thành chuỗi định dạng ISO 8601 YYYY-MM-DDTHH:mm:ss
     const isoString = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}`;
-    
+
     // Kiểm tra xem chuỗi hợp lệ
     if (isNaN(new Date(isoString).getTime())) {
         return null;
@@ -33,48 +33,115 @@ function parseCustomDateString(customDateString) {
     return isoString;
 }
 
-
 const getSensorHistory = async (req, res) => {
     try {
+        // Trích xuất và Chuẩn hóa Tham số
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const sortBy = req.query.sortBy || 'createdAt';
-        const order = req.query.order === 'asc' ? 1 : -1;
-        const searchType = req.query.searchType;
-        const searchValue = req.query.searchValue;
-
+        const sortOption = req.query.sortOption || 'newest';
+        const searchField = req.query.searchField || 'all';
+        const searchValue = req.query.searchValue || '';
         const skip = (page - 1) * limit;
+
+        // Xây dựng Đối tượng Sắp xếp
+        let sortObject = {};
+        switch (sortOption) {
+            case 'oldest':
+                sortObject = { createdAt: 1 };
+                break;
+            case 'highest':
+                if (searchField !== 'all' && searchField !== 'time') {
+                    sortObject = { [searchField]: -1 };
+                } else {
+                    sortObject = { createdAt: -1 };
+                }
+                break;
+            case 'lowest':
+                if (searchField !== 'all' && searchField !== 'time') {
+                    sortObject = { [searchField]: 1 };
+                } else {
+                    sortObject = { createdAt: -1 };
+                }
+                break;
+            case 'newest':
+            default:
+                sortObject = { createdAt: -1 };
+                break;
+        }
+        
+        // Xây dựng Đối tượng Truy vấn
         let queryObject = {};
+        if (searchValue) {
+            const isoDateString = parseCustomDateString(searchValue);
+            const numericValue = parseFloat(searchValue);
+            const isNumeric = !isNaN(numericValue) && isFinite(numericValue);
+            
+            // Quy tắc 0: Kiểm tra định dạng không hợp lệ
+            if (!isNumeric && !isoDateString) {
+                return res.status(400).json({ error: 'Định dạng tìm kiếm không hợp lệ. Vui lòng nhập số hoặc thời gian (HH:mm DD/MM/YYYY).' });
+            }
 
-        if (searchType && searchValue) {
-            if (searchType === 'time') {
-                // Dịch chuỗi đầu vào
-                const isoDateString = parseCustomDateString(searchValue);
+            const searchConditions = [];
 
-                if (isoDateString) {
+            // Quy tắc 1: Nếu giá trị nhập là thời gian hợp lệ
+            if (isoDateString) {
+                if (searchField === 'all' || searchField === 'time') {
                     const startDate = new Date(isoDateString);
                     let endDate;
                     if (searchValue.split(' ')[0].split(':').length === 2) {
-                        // Nếu không có giây, tìm trong cả phút
-                        endDate = new Date(startDate.getTime() + 60 * 1000);
+                        endDate = new Date(startDate.getTime() + 60 * 1000); // Cả phút
                     } else {
-                        // Nếu có giây, tìm trong cả giây
-                        endDate = new Date(startDate.getTime() + 1000);
+                        endDate = new Date(startDate.getTime() + 1000); // Cả giây
                     }
-
-                    queryObject.createdAt = {
-                        $gte: startDate,
-                        $lt: endDate
-                    };
+                    searchConditions.push({ createdAt: { $gte: startDate, $lt: endDate } });
                 }
-            } else if (['temperature', 'humidity', 'light'].includes(searchType)) {
-                queryObject[searchType] = { $gte: parseFloat(searchValue) };
+                // Nếu searchField là cảm biến nhưng nhập thời gian -> searchConditions sẽ rỗng -> không ra kết quả
+            } 
+            // Quy tắc 2: Nếu giá trị nhập là một con số
+            else if (isNumeric) {
+                const numericRangeQuery = { $gte: numericValue, $lt: numericValue + 1 };
+                
+                if (searchField === 'all') {
+                    // Tìm trên cả 3 trường cảm biến trước
+                    searchConditions.push({ temperature: numericRangeQuery });
+                    searchConditions.push({ humidity: numericRangeQuery });
+                    searchConditions.push({ light: numericRangeQuery });
+                    
+                    // Rồi tìm trên các thành phần thời gian
+                    searchConditions.push({ $expr: { $eq: [{ $year: '$createdAt' }, numericValue] } });
+                    searchConditions.push({ $expr: { $eq: [{ $month: '$createdAt' }, numericValue] } });
+                    searchConditions.push({ $expr: { $eq: [{ $dayOfMonth: '$createdAt' }, numericValue] } });
+                    searchConditions.push({ $expr: { $eq: [{ $hour: '$createdAt' }, numericValue] } });
+                    searchConditions.push({ $expr: { $eq: [{ $minute: '$createdAt' }, numericValue] } });
+                    searchConditions.push({ $expr: { $eq: [{ $second: '$createdAt' }, numericValue] } });
+                } 
+                else if (searchField === 'time') {
+                     // Chỉ tìm trên các thành phần thời gian
+                    searchConditions.push({ $expr: { $eq: [{ $year: '$createdAt' }, numericValue] } });
+                    searchConditions.push({ $expr: { $eq: [{ $month: '$createdAt' }, numericValue] } });
+                    searchConditions.push({ $expr: { $eq: [{ $dayOfMonth: '$createdAt' }, numericValue] } });
+                    searchConditions.push({ $expr: { $eq: [{ $hour: '$createdAt' }, numericValue] } });
+                    searchConditions.push({ $expr: { $eq: [{ $minute: '$createdAt' }, numericValue] } });
+                    searchConditions.push({ $expr: { $eq: [{ $second: '$createdAt' }, numericValue] } });
+                }
+                else { // Nếu là một trường cảm biến cụ thể (temperature, humidity, light)
+                    searchConditions.push({ [searchField]: numericRangeQuery });
+                }
+            }
+
+            // Gộp các điều kiện tìm kiếm
+            if (searchConditions.length > 0) {
+                queryObject = { $or: searchConditions };
+            } else {
+                // Nếu không có điều kiện nào hợp lệ được tạo ra, không trả về kết quả nào
+                queryObject = { _id: null }; 
             }
         }
-        
+
+        // Thực hiện Truy vấn
         const [data, totalDocuments] = await Promise.all([
             SensorData.find(queryObject)
-                .sort({ [sortBy]: order })
+                .sort(sortObject)
                 .skip(skip)
                 .limit(limit),
             SensorData.countDocuments(queryObject)
@@ -82,6 +149,7 @@ const getSensorHistory = async (req, res) => {
         
         const totalPages = Math.ceil(totalDocuments / limit);
 
+        // Trả kết quả
         res.status(200).json({
             data,
             pagination: {
@@ -100,32 +168,18 @@ const getSensorHistory = async (req, res) => {
 
 const getActivityHistory = async (req, res) => {
     try {
-        // Lấy các tham số truy vấn
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const sortBy = req.query.sortBy || 'createdAt';
         const order = req.query.order === 'asc' ? 1 : -1;
         
-        const filterDevice = req.query.filterDevice;
-        const filterStatus = req.query.filterStatus;
-        const searchTime = req.query.searchTime;
+        const { filterDevice, filterStatus, searchTime } = req.query;
 
         const skip = (page - 1) * limit;
-
-        // Xây dựng đối tượng truy vấn
         let queryObject = {};
 
-        // Thêm điều kiện lọc theo thiết bị
-        if (filterDevice) {
-            queryObject.device = filterDevice;
-        }
-
-        // Thêm điều kiện lọc theo hành động
-        if (filterStatus) {
-            queryObject.status = filterStatus;
-        }
-
-        // Thêm điều kiện tìm kiếm theo thời gian
+        if (filterDevice) queryObject.device = filterDevice;
+        if (filterStatus) queryObject.status = filterStatus;
         if (searchTime) {
             const isoDateString = parseCustomDateString(searchTime);
             if (isoDateString) {
@@ -140,7 +194,6 @@ const getActivityHistory = async (req, res) => {
             }
         }
 
-        // Truy vấn
         const [data, totalDocuments] = await Promise.all([
             DeviceActivity.find(queryObject)
                 .sort({ [sortBy]: order })
@@ -151,7 +204,6 @@ const getActivityHistory = async (req, res) => {
 
         const totalPages = Math.ceil(totalDocuments / limit);
 
-        // Trả kết quả về
         res.status(200).json({
             data,
             pagination: {

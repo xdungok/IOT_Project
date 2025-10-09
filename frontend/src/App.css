@@ -331,10 +331,40 @@ body {
 /* Pagination */
 .pagination {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     margin-top: 20px;
+    position: relative; /* Tạo một không gian định vị cho các phần tử con */
+    height: 38px; /* Đặt chiều cao cố định */
+}
+
+.page-size-selector {
+    display: flex;
+    align-items: center;
     gap: 8px;
+}
+
+.page-size-selector label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.page-size-selector select {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    /* ĐỊNH VỊ ĐỂ CĂN GIỮA */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .pagination button {
@@ -638,3 +668,4 @@ body {
     background-color: #fff3cd; /* Màu vàng nhạt */
     color: #856404;
 }
+

@@ -2,30 +2,30 @@ import React from 'react';
 import '../App.css';
 import { CgSpinner } from 'react-icons/cg';
 
-function DeviceControl({ label, device, state, onControl, icon, isPending }) {
+// THÊM isOffline vào danh sách props
+function DeviceControl({ label, device, state, onControl, icon, isPending, isOffline }) {
     const isON = state === 'ON';
 
     const handleToggle = () => {
-        // Không cho phép click khi đang chờ phản hồi
-        if (isPending) return;
+        // SỬ DỤNG isOffline trong điều kiện kiểm tra
+        if (isPending || isOffline) return;
         
         const newStatus = isON ? 'OFF' : 'ON';
         onControl(device, newStatus);
     };
     
-    // Logic render cho icon của quạt
-    const fanIcon = <span className={`device-icon ${isON ? 'on spinning-icon' : ''}`}>{icon}</span>;
-
-    // Logic render cho icon của đèn
-    const lightIcon = <div className={`light-rays-container ${isON ? 'on' : ''}`}><span className={`device-icon ${isON ? 'on' : ''}`}>{icon}</span></div>;
+    // Cập nhật logic render icon để không có hiệu ứng 'on' khi offline
+    const fanIcon = <span className={`device-icon ${isON && !isOffline ? 'on spinning-icon' : ''}`}>{icon}</span>;
+    const lightIcon = <div className={`light-rays-container ${isON && !isOffline ? 'on' : ''}`}><span className={`device-icon ${isON && !isOffline ? 'on' : ''}`}>{icon}</span></div>;
     
     return (
-        <div className={`device-control ${isPending ? 'pending' : ''}`}>
+        // Thêm class 'offline' vào div chính
+        <div className={`device-control ${isPending ? 'pending' : ''} ${isOffline ? 'offline' : ''}`}>
             <div className="device-info">
                 {/* Chọn cách render icon dựa trên tên thiết bị */}
                 {device === 'led_1' ? lightIcon : (device === 'led_3' ? fanIcon : (
                     // Dùng cách render mặc định cho các thiết bị khác
-                    <span className={`device-icon ${isON ? 'on' : ''}`}>{icon}</span>
+                    <span className={`device-icon ${isON && !isOffline ? 'on' : ''}`}>{icon}</span>
                 ))}
                 <p>{label}</p>
             </div>
@@ -37,7 +37,8 @@ function DeviceControl({ label, device, state, onControl, icon, isPending }) {
                     className="switch-checkbox"
                     checked={isON} 
                     onChange={handleToggle}
-                    disabled={isPending} // Vô hiệu hóa checkbox khi đang chờ
+                    // Vô hiệu hóa checkbox khi đang chờ hoặc offline
+                    disabled={isPending || isOffline} 
                 />
                 <div className="switch-track">
                     <div className="switch-thumb">
