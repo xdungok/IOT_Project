@@ -178,20 +178,31 @@ const getActivityHistory = async (req, res) => {
         const skip = (page - 1) * limit;
         let queryObject = {};
 
-        if (filterDevice) queryObject.device = filterDevice;
-        if (filterStatus) queryObject.status = filterStatus;
+        if (filterDevice) {
+            queryObject.device = filterDevice;
+        }
+        if (filterStatus) {
+            queryObject.status = filterStatus;
+        }
+
         if (searchTime) {
+            // Chỉ gọi hàm parse nếu có searchTime
             const isoDateString = parseCustomDateString(searchTime);
-            if (isoDateString) {
-                const startDate = new Date(isoDateString);
-                let endDate;
-                if (searchTime.split(' ')[0].split(':').length === 2) {
-                    endDate = new Date(startDate.getTime() + 60 * 1000);
-                } else {
-                    endDate = new Date(startDate.getTime() + 1000);
-                }
-                queryObject.createdAt = { $gte: startDate, $lt: endDate };
+
+            // Nếu hàm trả về null, nghĩa là định dạng sai
+            if (!isoDateString) {
+                return res.status(400).json({ error: 'Định dạng thời gian không hợp lệ. Vui lòng nhập theo HH:mm DD/MM/YYYY.' });
             }
+
+            // Nếu định dạng đúng, tiếp tục xử lý
+            const startDate = new Date(isoDateString);
+            let endDate;
+            if (searchTime.split(' ')[0].split(':').length === 2) { // Tìm theo phút
+                endDate = new Date(startDate.getTime() + 60 * 1000);
+            } else { // Tìm theo giây
+                endDate = new Date(startDate.getTime() + 1000);
+            }
+            queryObject.createdAt = { $gte: startDate, $lt: endDate };
         }
 
         const [data, totalDocuments] = await Promise.all([

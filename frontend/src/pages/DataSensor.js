@@ -17,23 +17,26 @@ function DataSensor() {
     const [searchValue, setSearchValue] = useState('');
     
     const [pageSize, setPageSize] = useState(10);
-    // State cho trang hiện tại
     const [currentPage, setCurrentPage] = useState(1);
 
-    const fetchSensorHistory = useCallback((page) => {
+    // Logic gọi API
+    // useCallback để ghi nhớ hàm fetch, tránh tạo lại không cần thiết
+    const fetchSensorHistory = useCallback((pageToFetch, currentFilters) => {
         setLoading(true);
         const params = new URLSearchParams({
-            page: page,
-            limit: pageSize,
-            sortOption: sortOption,
-            searchField: searchField,
-            searchValue: searchValue,
+            page: pageToFetch,
+            limit: currentFilters.pageSize,
+            sortOption: currentFilters.sortOption,
+            searchField: currentFilters.searchField,
+            searchValue: currentFilters.searchValue,
         });
 
         axios.get(`${API_URL}/api/history/sensors`, { params })
             .then(response => {
                 setSensorHistory(response.data.data);
                 setPagination(response.data.pagination);
+                // Cập nhật lại currentPage để đồng bộ với kết quả từ server
+                setCurrentPage(response.data.pagination.currentPage);
             })
             .catch(error => {
                 console.error("Failed to fetch sensor history:", error);
@@ -46,35 +49,30 @@ function DataSensor() {
             .finally(() => {
                 setLoading(false);
             });
-    }, [pageSize, sortOption, searchField, searchValue]);
+    }, []); // Mảng rỗng: hàm này chỉ được tạo 1 lần
 
+    // useEffect này sẽ chạy khi component mount lần đầu và khi các state TỰ ĐỘNG thay đổi
     useEffect(() => {
-        fetchSensorHistory(currentPage);
-    }, [currentPage, fetchSensorHistory]);
+        const currentFilters = { pageSize, sortOption, searchField, searchValue };
+        fetchSensorHistory(currentPage, currentFilters);
+    }, [currentPage, pageSize, sortOption]); // Chỉ lắng nghe các state tự động
     
     // Các hàm xử lý sự kiện
+    // Chỉ được kích hoạt bởi nút Search hoặc Enter
     const handleSearch = (e) => {
         e.preventDefault();
-        if (currentPage === 1) {
-            fetchSensorHistory(1);
-        } else {
-            setCurrentPage(1);
-        }
-    };
-
-    const handleFilterChange = (setter) => (e) => {
-        setter(e.target.value);
-        if (currentPage !== 1) {
-            setCurrentPage(1);
-        }
+        const currentFilters = { pageSize, sortOption, searchField, searchValue };
+        // Luôn tìm kiếm từ trang 1
+        fetchSensorHistory(1, currentFilters);
     };
 
     const handlePageChange = (newPage) => {
-        if (newPage > 0 && newPage <= pagination.totalPages) {
-            setCurrentPage(newPage);
+        if (newPage > 0 && newPage <= pagination.totalPages && newPage !== currentPage) {
+            setCurrentPage(newPage); // Kích hoạt useEffect
         }
     };
     
+    // Vô hiệu hóa tùy chọn sắp xếp "Lớn nhất", "Nhỏ nhất" khi không hợp lệ
     const isSortByValueDisabled = searchField === 'all' || searchField === 'time';
     
     // Phân trang
@@ -100,93 +98,91 @@ function DataSensor() {
 
 
     // Render giao diện
-return (
-    <div className="page-container">
-        <div className="page-header">
-            {/* Thanh Filter và Search */}
-            <form className="data-sensor-header" onSubmit={handleSearch}>
-                <select value={sortOption} onChange={handleFilterChange(setSortOption)}>
-                    <option value="newest">Sắp xếp: Mới nhất</option>
-                    <option value="oldest">Sắp xếp: Cũ nhất</option>
-                    <option value="highest" disabled={isSortByValueDisabled}>Sắp xếp: Lớn nhất</option>
-                    <option value="lowest" disabled={isSortByValueDisabled}>Sắp xếp: Nhỏ nhất</option>
-                </select>
+    return (
+        <div className="page-container">
+            <div className="page-header">
+                <form className="data-sensor-header" onSubmit={handleSearch}>
+                    {/* Filter này sẽ tự động tìm kiếm */}
+                    <select value={sortOption} onChange={(e) => { setSortOption(e.target.value); setCurrentPage(1); }}>
+                        <option value="newest">Sắp xếp: Mới nhất</option>
+                        <option value="oldest">Sắp xếp: Cũ nhất</option>
+                        <option value="highest" disabled={isSortByValueDisabled}>Sắp xếp: Lớn nhất</option>
+                        <option value="lowest" disabled={isSortByValueDisabled}>Sắp xếp: Nhỏ nhất</option>
+                    </select>
 
-                <select value={searchField} onChange={handleFilterChange(setSearchField)}>
-                    <option value="all">Tìm theo: Tất cả</option>
-                    <option value="time">Tìm theo: Thời gian</option>
-                    <option value="temperature">Tìm theo: Nhiệt độ</option>
-                    <option value="humidity">Tìm theo: Độ ẩm</option>
-                    <option value="light">Tìm theo: Ánh sáng</option>
-                </select>
+                    {/* Filter này chỉ cập nhật state, không tìm kiếm */}
+                    <select value={searchField} onChange={(e) => setSearchField(e.target.value)}>
+                        <option value="all">Tìm theo: Tất cả</option>
+                        <option value="time">Tìm theo: Thời gian</option>
+                        <option value="temperature">Tìm theo: Nhiệt độ</option>
+                        <option value="humidity">Tìm theo: Độ ẩm</option>
+                        <option value="light">Tìm theo: Ánh sáng</option>
+                    </select>
 
-                <input 
-                    type="text"
-                    placeholder="Nhập giá trị hoặc thời gian..."
-                    value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
-                />
-                <button type="submit">Search</button>
-            </form>
-        </div>
+                    <input 
+                        type="text"
+                        placeholder="Nhập giá trị hoặc thời gian..."
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                    />
+                    <button type="submit">Search</button>
+                </form>
+            </div>
 
-        {/* Bảng Dữ liệu */}
-        <div className="table-container">
-            {loading ? (
-                <p style={{textAlign: 'center', paddingTop: '20px'}}>Loading sensor data history...</p>
-            ) : (
-                <table className="history-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Ánh sáng (Lux)</th>
-                            <th>Độ ẩm (%)</th>
-                            <th>Nhiệt độ (°C)</th>
-                            <th>Thời gian</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                            {sensorHistory.map((dataPoint, index) => (
-                                <tr key={dataPoint._id}>
-                                    {/* Sử dụng thông tin từ pagination để tính ID chính xác */}
-                                    <td>{(pagination.currentPage - 1) * pagination.limit + index + 1}</td>
-                                    <td>{dataPoint.light.toFixed(4)}</td>
-                                    <td>{dataPoint.humidity.toFixed(1)}</td>
-                                    <td>{dataPoint.temperature.toFixed(1)}</td>
-                                    <td>{new Date(dataPoint.createdAt).toLocaleString('vi-VN')}</td>
-                                </tr>
-                            ))}
-                    </tbody>
-                </table>
-            )}
-        </div>
+            <div className="table-container">
+                {loading ? (
+                    <p style={{textAlign: 'center', paddingTop: '20px'}}>Loading sensor data history...</p>
+                ) : (
+                    <table className="history-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Ánh sáng (Lux)</th>
+                                <th>Độ ẩm (%)</th>
+                                <th>Nhiệt độ (°C)</th>
+                                <th>Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                                {sensorHistory.map((dataPoint, index) => (
+                                    <tr key={dataPoint._id}>
+                                        <td>{(pagination.currentPage - 1) * pagination.limit + index + 1}</td>
+                                        <td>{dataPoint.light.toFixed(4)}</td>
+                                        <td>{dataPoint.humidity.toFixed(1)}</td>
+                                        <td>{dataPoint.temperature.toFixed(1)}</td>
+                                        <td>{new Date(dataPoint.createdAt).toLocaleString('vi-VN')}</td>
+                                    </tr>
+                                ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
 
-        <div className="page-footer">
-            {!loading && sensorHistory.length > 0 && (
-                <div className="pagination">
-                    {/* Phân trang */}
-                    <div className="page-size-selector">
-                        <label htmlFor="pageSize">Hàng/trang:</label>
-                        <select id="pageSize" value={pageSize} onChange={handleFilterChange(setPageSize)}>
-                            <option value={10}>10</option>
-                            <option value={20}>20</option>
-                            <option value={50}>50</option>
-                        </select>
+            <div className="page-footer">
+                {!loading && sensorHistory.length > 0 && (
+                    <div className="pagination">
+                        <div className="page-size-selector">
+                            <label htmlFor="pageSize">Hàng/trang:</label>
+                            {/* Filter này cũng tự động tìm kiếm */}
+                            <select id="pageSize" value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}>
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                                <option value={50}>50</option>
+                            </select>
+                        </div>
+
+                        <div className="pagination-controls">
+                            <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}>First</button>
+                            <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
+                            {renderPaginationButtons()}
+                            <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === pagination.totalPages || !pagination.totalPages}>Next</button>
+                            <button onClick={() => handlePageChange(pagination.totalPages)} disabled={currentPage === pagination.totalPages || !pagination.totalPages}>Last</button>
+                        </div>
                     </div>
-
-                    {/* Container để nhóm và căn giữa các nút điều khiển trang */}
-                    <div className="pagination-controls">
-                        <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}>First</button>
-                        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
-                        {renderPaginationButtons()}
-                        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === pagination.totalPages || !pagination.totalPages}>Next</button>
-                        <button onClick={() => handlePageChange(pagination.totalPages)} disabled={currentPage === pagination.totalPages || !pagination.totalPages}>Last</button>
-                    </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
-    </div>
-);
+    );
 }
 
 export default DataSensor;
