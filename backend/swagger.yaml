@@ -1,0 +1,210 @@
+openapi: 3.0.3
+info:
+  title: IOT Control API
+  description: API for monitoring and controlling IoT devices in a smart home environment.
+  version: 1.0.0
+  contact:
+    name: Luu Xuan Dung
+    email: your.email@example.com
+
+servers:
+  - url: http://localhost:3001
+    description: Development Server
+
+tags:
+  - name: Profile
+    description: Operations about user profile
+  - name: Control
+    description: Device control operations
+  - name: History
+    description: Operations to retrieve historical data
+
+paths:
+  /api/profile:
+    get:
+      summary: Get User Profile Information
+      description: Retrieves static profile information of the project owner.
+      tags: [Profile]
+      responses:
+        '200':
+          description: Successful response with profile data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+
+  /api/control:
+    post:
+      summary: Send a Control Command to a Device
+      description: Publishes a command to the MQTT broker to control a device. A 'pending' activity log is created immediately.
+      tags: [Control]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ControlRequest'
+      responses:
+        '202':
+          description: Accepted. The command has been accepted for processing.
+        '400':
+          description: Bad Request. Missing 'device' or 'status' in the body.
+        '503':
+          description: Service Unavailable. The device is offline and the command was rejected.
+
+  /api/control/states:
+    get:
+      summary: Get Last Known States of All Devices
+      description: Retrieves a map of the last confirmed states for all devices from the database.
+      tags: [Control]
+      responses:
+        '200':
+          description: A map of device states.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  led_1: { type: string, example: "ON" }
+                  led_2: { type: string, example: "OFF" }
+
+  /api/history/sensors:
+    get:
+      summary: Get Sensor Data History
+      description: Retrieves a paginated list of sensor data with advanced filtering and sorting.
+      tags: [History]
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+          description: Page number to retrieve.
+        - in: query
+          name: limit
+          schema: { type: integer, default: 10 }
+          description: Number of records per page.
+        - in: query
+          name: sortOption
+          schema: { type: string, enum: [newest, oldest, highest, lowest], default: newest }
+          description: Sorting option for the result set.
+        - in: query
+          name: searchField
+          schema: { type: string, enum: [all, time, temperature, humidity, light], default: all }
+          description: Field to search on.
+        - in: query
+          name: searchValue
+          schema: { type: string }
+          description: Value for the search (numeric or various time formats).
+      responses:
+        '200':
+          description: A paginated list of sensor data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SensorHistoryResponse'
+        '400':
+          description: Bad Request. Invalid search format.
+
+  /api/history/activity:
+    get:
+      summary: Get Device Activity History
+      description: Retrieves a paginated list of device activities with filtering.
+      tags: [History]
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 10 }
+        - in: query
+          name: filterDevice
+          schema: { type: string, enum: [led_1, led_2, led_3] }
+        - in: query
+          name: filterStatus
+          schema: { type: string, enum: [ON, OFF] }
+        - in: query
+          name: searchTime
+          schema: { type: string }
+      responses:
+        '200':
+          description: A paginated list of device activities.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityHistoryResponse'
+        '400':
+          description: Bad Request. Invalid time format.
+
+components:
+  schemas:
+    Profile:
+      type: object
+      properties:
+        fullName: { type: string, example: "Lưu Xuân Dũng" }
+        studentId: { type: string, example: "B22DCCN129" }
+        className: { type: string, example: "D22HTTT05" }
+        phone: { type: string, example: "0967430627" }
+        avatarUrl: { type: string, example: "/images/avatar.jpg" }
+        githubUrl: { type: string, format: url, example: "https://github.com/your-username" }
+        pdfUrl: { type: string, example: "/files/project-report.pdf" }
+        apiDocsUrl: { type: string, format: url, example: "/api-docs" }
+
+    ControlRequest:
+      type: object
+      required: [device, status]
+      properties:
+        device:
+          type: string
+          description: The ID of the device. Use 'all' for all devices.
+          example: "led_1"
+        status:
+          type: string
+          description: The desired status.
+          enum: [ON, OFF]
+          example: "ON"
+
+    SensorData:
+      type: object
+      properties:
+        _id: { type: string, example: "635f..." }
+        temperature: { type: number, format: float, example: 28.5 }
+        humidity: { type: number, format: float, example: 85.2 }
+        light: { type: number, format: float, example: 1200.75 }
+        createdAt: { type: string, format: date-time }
+
+    DeviceActivity:
+      type: object
+      properties:
+        _id: { type: string, example: "635f..." }
+        device: { type: string, example: "led_1" }
+        status: { type: string, enum: [ON, OFF] }
+        result: { type: string, enum: [pending, success, failed] }
+        createdAt: { type: string, format: date-time }
+
+    Pagination:
+      type: object
+      properties:
+        currentPage: { type: integer, example: 1 }
+        totalPages: { type: integer, example: 15 }
+        totalDocuments: { type: integer, example: 148 }
+        limit: { type: integer, example: 10 }
+
+    SensorHistoryResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SensorData'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    
+    ActivityHistoryResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceActivity'
+        pagination:
+          $ref: '#/components/schemas/Pagination'

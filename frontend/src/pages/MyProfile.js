@@ -42,8 +42,8 @@ function MyProfile() {
                                 <img src="/images/pdf-logo.png" alt="PDF Logo" />
                             </a>
                             {/* LINK API DOCS */}
-                            <a href={profile.apiDocsUrl} target="_blank" rel="noopener noreferrer">
-                                <img src="/images/api-docs-logo.png" alt="API Docs Logo" />
+                            <a href={profile.apiDocsUrl} target="_blank" rel="noopener noreferrer" >
+                                <img src="/images/api-logo.png" alt="API Docs Logo" />
                             </a>
                         </div>
                     </div>
